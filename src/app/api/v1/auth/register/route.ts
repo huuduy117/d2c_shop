@@ -9,7 +9,10 @@ export async function POST(req: Request) {
   const body = await req.json();
   const parseResult = registerSchema.safeParse(body);
   if (!parseResult.success) {
-    return NextResponse.json({ data: null, error: parseResult.error.flatten().formErrors.join(" ") }, { status: 422 });
+    return NextResponse.json(
+      { data: null, error: parseResult.error.flatten().formErrors.join(" ") },
+      { status: 422 },
+    );
   }
 
   const { email, password, fullName, phone, pdpaVersion } = parseResult.data;
@@ -19,7 +22,10 @@ export async function POST(req: Request) {
   });
 
   if (existing) {
-    return NextResponse.json({ data: null, error: "Email đã được sử dụng." }, { status: 409 });
+    return NextResponse.json(
+      { data: null, error: "Email đã được sử dụng." },
+      { status: 409 },
+    );
   }
 
   const passwordHash = await hashPassword(password);
@@ -34,5 +40,8 @@ export async function POST(req: Request) {
     pdpa_version: pdpaVersion,
   });
 
-  return NextResponse.json({ data: { success: true }, error: null }, { status: 201 });
+  return NextResponse.json(
+    { data: { success: true }, error: null },
+    { status: 201 },
+  );
 }

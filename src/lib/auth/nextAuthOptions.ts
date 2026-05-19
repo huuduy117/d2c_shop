@@ -6,6 +6,15 @@ import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyPassword } from "@/lib/utils/hash";
+import { rateLimit, resetRateLimit } from "@/lib/cache/redis";
+
+type AuthRequestHeaders =
+  | Record<string, string | string[] | undefined>
+  | Headers;
+
+type AuthRequest = {
+  headers?: AuthRequestHeaders;
+};
 
 type ExtendedSession = Session & { user: Session["user"] & { role?: string } };
 
@@ -21,8 +30,30 @@ export const authOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req: AuthRequest) {
         if (!credentials?.email || !credentials.password) return null;
+
+        const headers = req?.headers as AuthRequestHeaders | undefined;
+        const ip =
+          ((headers as Record<string, string | string[] | undefined>)?.[
+            "x-forwarded-for"
+          ] as string | undefined) ||
+          ((headers as Record<string, string | string[] | undefined>)?.[
+            "x-real-ip"
+          ] as string | undefined) ||
+          (headers instanceof Headers
+            ? headers.get("x-forwarded-for")
+            : undefined) ||
+          (headers instanceof Headers ? headers.get("x-real-ip") : undefined) ||
+          "unknown";
+        const limitKey = `login_attempts:${ip}:${credentials.email.toLowerCase()}`;
+
+        const limit = await rateLimit(limitKey, 5, 900);
+        if (!limit.success) {
+          throw new Error(
+            "Too many failed login attempts. Please try again after 15 minutes.",
+          );
+        }
 
         const user = await db.query.users.findFirst({
           where: eq(users.email, credentials.email.toLowerCase()),
@@ -32,10 +63,15 @@ export const authOptions = {
           return null;
         }
 
-        const isValid = await verifyPassword(credentials.password, user.password_hash);
+        const isValid = await verifyPassword(
+          credentials.password,
+          user.password_hash,
+        );
         if (!isValid) {
           return null;
         }
+
+        await resetRateLimit(limitKey);
 
         return {
           id: user.id as string,
@@ -51,7 +87,13 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user?: User | (User & { role?: string }) | undefined }) {
+    async jwt({
+      token,
+      user,
+    }: {
+      token: JWT;
+      user?: User | (User & { role?: string }) | undefined;
+    }) {
       if (user) {
         token.role = (user as User & { role?: string }).role ?? token.role;
       }

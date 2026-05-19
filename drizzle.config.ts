@@ -1,10 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import dotenv from "dotenv";
 
-export default {
+dotenv.config({ path: ".env.local" });
+
+const drizzleConfig = {
   schema: "./src/lib/db/schema.ts",
   out: "./drizzle/migrations",
+  dialect: "postgresql",
   driver: "pg",
   dbCredentials: {
     connectionString: process.env.DATABASE_URL ?? "",
   },
-} as any;
+};
+
+export default drizzleConfig;
