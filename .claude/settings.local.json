@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npx tsx *)",
+      "Bash(curl -s http://localhost:3000/api/v1/categories)",
+      "Bash(curl -v http://localhost:3000/api/v1/categories)",
+      "Bash(curl -s \"http://localhost:3000/api/v1/products?page=1&limit=5\")",
+      "Bash(pkill -f \"npm run dev\")",
+      "Bash(curl -s \"http://localhost:3000/api/v1/products?page=1&limit=3\")",
+      "Bash(curl -s \"http://localhost:3000/api/v1/products?page=1&limit=2\")",
+      "Bash(curl -s \"http://localhost:3000/api/v1/products/ban-phim-co\")"
+    ]
+  }
+}

@@ -1,6 +1,7 @@
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { branches, shopConfig, users } from "./schema";
+import * as schema from "./schema";
+import * as relations from "./relations";
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -12,10 +13,11 @@ const pool = new Pool({
       : false,
 });
 
-export const db = drizzle<{
-  users: typeof users;
-  shop_config: typeof shopConfig;
-  branches: typeof branches;
-}>(pool);
+export const db = drizzle(pool, {
+  schema: {
+    ...schema,
+    ...relations,
+  },
+});
 
 export { pool };
