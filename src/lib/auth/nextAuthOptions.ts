@@ -16,7 +16,9 @@ type AuthRequest = {
   headers?: AuthRequestHeaders;
 };
 
-type ExtendedSession = Session & { user: Session["user"] & { role?: string } };
+type ExtendedSession = Session & {
+  user: Session["user"] & { id?: string; role?: string };
+};
 
 export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -95,6 +97,7 @@ export const authOptions = {
       user?: User | (User & { role?: string }) | undefined;
     }) {
       if (user) {
+        token.id = (user as User & { id?: string }).id;
         token.role = (user as User & { role?: string }).role ?? token.role;
       }
       return token;
@@ -102,7 +105,8 @@ export const authOptions = {
     async session({ session, token }: { session: Session; token: JWT }) {
       const extendedSession = session as ExtendedSession;
       if (extendedSession.user) {
-        extendedSession.user.role = token.role as string | undefined;
+        (extendedSession.user as any).id = token.id;
+        (extendedSession.user as any).role = token.role;
       }
       return extendedSession;
     },

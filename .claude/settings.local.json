@@ -9,7 +9,10 @@
       "Bash(pkill -f \"npm run dev\")",
       "Bash(curl -s \"http://localhost:3000/api/v1/products?page=1&limit=3\")",
       "Bash(curl -s \"http://localhost:3000/api/v1/products?page=1&limit=2\")",
-      "Bash(curl -s \"http://localhost:3000/api/v1/products/ban-phim-co\")"
+      "Bash(curl -s \"http://localhost:3000/api/v1/products/ban-phim-co\")",
+      "Bash(curl -s http://localhost:3000/api/v1/addresses -H \"Authorization: Bearer test\")",
+      "Bash(curl -s -X POST http://localhost:3000/api/v1/shipping/nearest-branch -H 'Content-Type: application/json' -d '{\"latitude\": 21.0285, \"longitude\": 105.8045}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/v1/shipping/estimate -H 'Content-Type: application/json' -d '{\"to_district_id\": 100, \"to_ward_code\": \"123456\", \"weight\": 500}')"
     ]
   }
 }
